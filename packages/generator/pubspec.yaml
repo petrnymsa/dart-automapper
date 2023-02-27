@@ -1,6 +1,7 @@
 name: automapper_generator
 description: A starting point for Dart libraries or applications.
 version: 0.0.1
+
 # homepage: https://www.example.com
 
 environment:
@@ -15,6 +16,8 @@ dependencies:
   code_builder: ^4.4.0
   path: ^1.8.3
   source_gen: ^1.2.6
+  collection: ^1.17.0
+  equatable: ^2.0.5
 
 dev_dependencies:
   lints: ^2.0.1

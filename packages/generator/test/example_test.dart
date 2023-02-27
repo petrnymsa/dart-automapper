@@ -1,16 +1,46 @@
-import 'package:automapper_generator/builder.dart';
-import 'package:generator_test/generator_test.dart';
-import 'package:test/scaffolding.dart';
+import 'package:automapper_generator/generator/generator.dart';
+import 'package:path/path.dart' as p;
+import 'package:source_gen_test/source_gen_test.dart';
 
-void main() {
-  test('debug', () async {
-    final generator = SuccessGenerator.fromBuilder('example', automapperBuilder,
-        compareWithFixture: false);
+void main() async {
+  initializeBuildLogTracking();
+  final reader = await initializeLibraryReaderForDirectory(
+    p.join('test', 'fixture'),
+    'input.dart',
+  );
 
-    await generator.test();
+  testAnnotatedElements(
+    reader,
+    MapperGenerator(),
+    expectedAnnotatedTests: _expectedAnnotatedTests,
+  );
 
-    final v = generator.fixtureContent();
+  // test('debug', () async {
 
-    print(v);
-  });
+  //   final generator = SuccessGenerator.fromBuilder('example', automapperBuilder, compareWithFixture: false);
+
+  //   await generator.test();
+
+  //   final v = generator.fixtureContent();
+
+  //   print(v);
+  // });
+
+  // test('fixtures', () async {
+  //   initializeBuildLogTracking();
+  //   final reader = await initializeLibraryReaderForDirectory(
+  //     p.join('test', 'fixture'),
+  //     'input.dart',
+  //   );
+
+  //   testAnnotatedElements(
+  //     reader,
+  //     MapperGenerator(),
+  //     expectedAnnotatedTests: _expectedAnnotatedTests,
+  //   );
+  // });
 }
+
+const _expectedAnnotatedTests = {
+  'OnlyPositional',
+};

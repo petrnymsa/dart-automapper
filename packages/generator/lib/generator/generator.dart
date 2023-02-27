@@ -52,6 +52,20 @@ class MapperGenerator extends GeneratorForAnnotation<AutoMapper> {
       return AutoMapPart(source: from, target: to);
     }).toList();
 
+    //todo [refactor] Check duplicates
+    // final setParts = parts.map((e) => e.mappingMapMethodName).toSet();
+
+    // if (parts.length != setParts.length) {
+    //   final dupParts = [...parts];
+
+    //   for (var element in setParts) {
+    //     dupParts.remove(element);
+    //   }
+
+    //   throw InvalidGenerationSourceError(
+    //       'Duplicated mappings: ${dupParts.map((e) => e.toString()).join('.')}');
+    // }
+
     /**
      *  1. Gather all AutoMap 
      *  2. For each AutoMap 

@@ -1,15 +1,14 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:automapper_generator/builder/convert_method_builder.dart';
+import 'package:automapper_generator/builder/map_model_builder.dart';
 import 'package:automapper_generator/models/auto_mapper_config.dart';
 import 'package:code_builder/code_builder.dart';
-
-import '../models/auto_map_part.dart';
 
 class AutoMapperBuilder {
   //todo should be used later
   // static final String _mappingTypeInput = 'I';
   // static final String _mappingTypeOutput = 'R';
-  // static final String _modelInputName = 'model';
+  static final String _modelInputName = 'model';
 
   final AutoMapperConfig config;
   final ClassElement mapperClassElement;
@@ -38,8 +37,10 @@ class AutoMapperBuilder {
     // add helper method for type checks
     methods.add(_buildTypeOfHelperMethod());
 
+    methods.add(ConvertMethodBuilder.buildCanConvert(mapperClassElement, config.parts));
+
     // Public convert method
-    methods.add(ConvertMethodBuilder.build(mapperClassElement, config.parts));
+    methods.add(ConvertMethodBuilder.buildConvertMethod(mapperClassElement, config.parts));
 
     // Individual mapper methods of each mappings
     for (var mapping in config.parts) {
@@ -49,12 +50,10 @@ class AutoMapperBuilder {
           ..requiredParameters.addAll([
             Parameter((p) => p
               ..name = 'model'
-              ..type =
-                  refer(mapping.source.getDisplayString(withNullability: true)))
+              ..type = refer(mapping.source.getDisplayString(withNullability: true)))
           ])
-          ..returns =
-              refer(mapping.target.getDisplayString(withNullability: true))
-          ..body = buildMethodMappingBody(mapping),
+          ..returns = refer(mapping.target.getDisplayString(withNullability: true))
+          ..body = MapModelBodyMethodBuilder().build(mapping),
       ));
     }
 
@@ -70,28 +69,5 @@ class AutoMapperBuilder {
         ..lambda = true
         ..body = Code('X'),
     );
-  }
-
-  Code? buildMethodMappingBody(AutoMapPart mapping) {
-    final block = BlockBuilder();
-
-    final targetClass = mapping.target.element as ClassElement;
-
-    final targetConstructor = _findBestConstructor(targetClass);
-
-    block.statements.add(Code('// $targetConstructor'));
-
-    block.addExpression(refer('Exception')
-        .newInstance([refer('\'Converting $mapping\'')]).thrown);
-
-    return block.build();
-  }
-
-  ConstructorElement _findBestConstructor(ClassElement element) {
-    final constructors = element.constructors;
-
-    constructors.sort(((a, b) => b.parameters.length - a.parameters.length));
-
-    return constructors.first;
   }
 }

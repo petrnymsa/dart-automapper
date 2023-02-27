@@ -28,8 +28,20 @@ class NameDto {
   });
 }
 
+class UserB {
+  final int id;
+  final String name;
+
+  UserB.create({
+    required this.id,
+    required this.name,
+  });
+}
+
 @AutoMapper(mappers: [
   AutoMap<UserDto, User>(reverse: true),
-  AutoMap<NameDto, User>(),
+  // AutoMap<UserDto, User>(reverse: true),
+  //AutoMap<UserDto, User>(reverse: true),
+  //AutoMap<NameDto, User>(),
 ])
 abstract class ExampleMapper {}
