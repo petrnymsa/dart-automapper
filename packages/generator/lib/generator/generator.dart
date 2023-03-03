@@ -26,16 +26,13 @@ import '../models/auto_map_part.dart';
 /// Codegenerator to generate implemented mapping classes
 class MapperGenerator extends GeneratorForAnnotation<AutoMapper> {
   @override
-  dynamic generateForAnnotatedElement(
-      Element element, ConstantReader annotation, BuildStep buildStep) {
+  dynamic generateForAnnotatedElement(Element element, ConstantReader annotation, BuildStep buildStep) {
     if (element is! ClassElement) {
-      throw InvalidGenerationSourceError(
-          '${element.displayName} is not a class and cannot be annotated with @Mapper',
-          element: element,
-          todo: 'Add Mapper annotation to a class');
+      throw InvalidGenerationSourceError('${element.displayName} is not a class and cannot be annotated with @Mapper',
+          element: element, todo: 'Add Mapper annotation to a class');
     }
-    final annotation = element.metadata.single;
-    final constant = annotation.computeConstantValue()!;
+    final annotation = element.metadata.single; // AutoMapper annotation
+    final constant = annotation.computeConstantValue()!; // its instance
     final field = constant.getField('mappers')!;
     final list = field.toListValue()!;
     //final firstElement = list.first;
@@ -49,7 +46,23 @@ class MapperGenerator extends GeneratorForAnnotation<AutoMapper> {
       final from = mapType.typeArguments[0];
       final to = mapType.typeArguments[1];
 
-      return AutoMapPart(source: from, target: to);
+      final isReverse = x.getField('reverse')?.toBoolValue();
+      final mappings = x.getField('mappings')?.toListValue();
+
+      final m = mappings?.map((e) {
+        return MemberMapping(
+          member: e.getField('member')!.toStringValue()!,
+          ignore: e.getField('ignore')!.toBoolValue()!,
+          target: e.getField('target')!.toFunctionValue(),
+        );
+      }).toList();
+
+      return AutoMapPart(
+        source: from,
+        target: to,
+        isReverse: isReverse ?? false,
+        mappings: m,
+      );
     }).toList();
 
     //todo [refactor] Check duplicates
@@ -80,12 +93,10 @@ class MapperGenerator extends GeneratorForAnnotation<AutoMapper> {
      */
 
     final config = AutoMapperConfig(parts: parts);
-    final builder =
-        AutoMapperBuilder(mapperClassElement: element, config: config);
+    final builder = AutoMapperBuilder(mapperClassElement: element, config: config);
 
     final mapping = builder.build();
-    final emitter =
-        DartEmitter(orderDirectives: true, useNullSafetySyntax: true);
+    final emitter = DartEmitter(orderDirectives: true, useNullSafetySyntax: true);
 
     return '${mapping.accept(emitter)}';
   }

@@ -39,9 +39,14 @@ class UserB {
 }
 
 @AutoMapper(mappers: [
-  AutoMap<UserDto, User>(reverse: true),
+  AutoMap<UserDto, User>(reverse: true, mappings: [
+    MapMember(member: 'id', ignore: true),
+    MapMember(member: 'name', target: ExampleMapper.mapUserDtoName),
+  ]),
   // AutoMap<UserDto, User>(reverse: true),
   //AutoMap<UserDto, User>(reverse: true),
   //AutoMap<NameDto, User>(),
 ])
-abstract class ExampleMapper {}
+abstract class ExampleMapper {
+  static String mapUserDtoName(UserDto dto) => dto.name.toUpperCase();
+}

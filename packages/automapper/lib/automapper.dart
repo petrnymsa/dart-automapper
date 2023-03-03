@@ -3,4 +3,4 @@
 /// More dartdocs go here.
 library automapper;
 
-export 'src/awersome.dart';
+export 'src/auto_mapper.dart';

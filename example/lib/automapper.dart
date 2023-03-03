@@ -5,20 +5,26 @@ part 'automapper.g.dart';
 class User {
   final int id;
   final String name;
+  final String? tag;
+
+  int age = 0;
 
   User({
     required this.id,
     required this.name,
+    required this.tag,
   });
 }
 
 class UserDto {
   final int id;
   final String name;
+  final int age;
 
   UserDto({
     required this.id,
     required this.name,
+    required this.age,
   });
 }
 
@@ -74,13 +80,20 @@ class ListTargetNullable {
 }
 
 @AutoMapper(mappers: [
-  AutoMap<UserDto, User>(),
-  AutoMap<User, UserDto>(),
-  AutoMap<UserDto, NameDto>(),
-  AutoMap<UserDto, SetterNameDto>(),
-  AutoMap<ListDtoNN, ListTargetNN>(),
-  AutoMap<ListDtoNN, ListTargetNullable>(),
-  AutoMap<ListDtoNullable, ListTargetNullable>(),
-  AutoMap<ListDtoNullable, ListTargetNN>(),
+  AutoMap<UserDto, User>(mappings: [
+    MapMember(member: 'name', target: ExampleMapper.m),
+    MapMember(member: 'age', target: mapAge),
+  ]),
+  // AutoMap<User, UserDto>(),
+  // AutoMap<UserDto, NameDto>(),
+  // AutoMap<UserDto, SetterNameDto>(),
+  // AutoMap<ListDtoNN, ListTargetNN>(),
+  // AutoMap<ListDtoNN, ListTargetNullable>(),
+  // AutoMap<ListDtoNullable, ListTargetNullable>(),
+  // AutoMap<ListDtoNullable, ListTargetNN>(),
 ])
-class ExampleMapper extends $ExampleMapper {}
+class ExampleMapper extends $ExampleMapper {
+  static dynamic m(UserDto from) => from.id;
+}
+
+dynamic mapAge(UserDto from) => 55;

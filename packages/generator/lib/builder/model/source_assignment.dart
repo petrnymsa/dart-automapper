@@ -1,5 +1,8 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:automapper_generator/builder/model/extensions.dart';
+
+import '../../models/auto_map_part.dart';
 
 class ConstructorAssignment {
   final ParameterElement param;
@@ -14,20 +17,28 @@ class ConstructorAssignment {
 }
 
 class SourceAssignment {
-  final FieldElement sourceField;
+  final FieldElement? sourceField;
   final ConstructorAssignment? targetConstructorParam;
-  final FieldElement target;
+  final FieldElement targetField;
+  final MemberMapping? memberMapping;
+
+  bool get shouldBeIgnored => memberMapping?.ignore ?? false;
 
   SourceAssignment({
     required this.sourceField,
-    required this.target,
+    required this.targetField,
     this.targetConstructorParam,
+    this.memberMapping,
   });
+
+  DartType get _targetType => targetConstructorParam?.param.type ?? targetField.type;
 
   bool shouldAssignList() {
     // The source can be mapped to the target, if the source is mapable object and the target is listLike.
-    return _isCoreListLike(targetConstructorParam?.param.type ?? target.type) && _isMapable(sourceField.type);
+    return _isCoreListLike(_targetType) && _isMapable(sourceField!.type);
   }
+
+  bool shouldAssignComplextObject() => !_targetType.isSimpleType;
 
   bool _isCoreListLike(DartType type) {
     return type.isDartCoreList || type.isDartCoreSet || type.isDartCoreIterable;

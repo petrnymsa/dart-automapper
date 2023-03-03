@@ -1,12 +1,15 @@
 import 'package:automapper/automapper.dart';
 
-part 'fixtures/only_positional.dart';
+part 'fixtures/only_required_named.dart';
 
 class User {
   final int id;
   final String name;
 
-  User(this.id, this.name);
+  User({
+    required this.id,
+    required this.name,
+  });
 }
 
 class UserDto {
@@ -19,4 +22,4 @@ class UserDto {
 @AutoMapper(mappers: [
   AutoMap<UserDto, User>(),
 ])
-class OnlyPositional extends $OnlyPositional {}
+class Mapper extends $Mapper {}

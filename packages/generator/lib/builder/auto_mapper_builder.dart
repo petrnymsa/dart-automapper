@@ -53,7 +53,7 @@ class AutoMapperBuilder {
               ..type = refer(mapping.source.getDisplayString(withNullability: true)))
           ])
           ..returns = refer(mapping.target.getDisplayString(withNullability: true))
-          ..body = MapModelBodyMethodBuilder().build(mapping),
+          ..body = MapModelBodyMethodBuilder(mapping: mapping, mapperConfig: config).build(),
       ));
     }
 
