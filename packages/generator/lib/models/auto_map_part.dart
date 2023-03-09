@@ -42,17 +42,20 @@ class AutoMapPart extends Equatable {
   }
 
   @override
-  List<Object> get props => [source, target];
+  List<Object?> get props => [source, target, isReverse, mappings];
 }
 
-class MemberMapping {
+class MemberMapping extends Equatable {
   final String member;
   final ExecutableElement? target;
-  bool ignore;
+  final bool ignore;
 
-  MemberMapping({
+  const MemberMapping({
     required this.member,
     this.target,
     required this.ignore,
   });
+
+  @override
+  List<Object?> get props => [member, target, ignore];
 }

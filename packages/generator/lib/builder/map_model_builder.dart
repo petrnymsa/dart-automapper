@@ -64,15 +64,7 @@ class MapModelBodyMethodBuilder {
             targetClass.fields.firstWhere((targetField) => targetField.displayName == sourceField.displayName);
 
         if (mapping.memberShouldBeIgnored(targetField.displayName)) {
-          if (param.isPositional && param.type.nullabilitySuffix != NullabilitySuffix.question) {
-            throw InvalidGenerationSourceError(
-                "Can't ignore member '${sourceField.displayName}' as it is positional not-nullable parameter");
-          }
-
-          if (param.isRequiredNamed && param.type.nullabilitySuffix != NullabilitySuffix.question) {
-            throw InvalidGenerationSourceError(
-                "Can't ignore member '${sourceField.displayName}' as it is required not-nullable parameter");
-          }
+          _assertParamMemberCanBeIgnored(param, sourceField);
         }
 
         final sourceAssignment = SourceAssignment(
@@ -85,19 +77,32 @@ class MapModelBodyMethodBuilder {
         mappedTargetConstructorParams.add(sourceAssignment);
         mappedSourceFieldNames.add(param.name);
       } else {
+        // If not mapped constructor param is optional - skip it
+        if (param.isOptional) continue;
+
         final targetField =
-            targetClass.fields.firstWhere((targetField) => targetField.displayName == param.displayName);
+            targetClass.fields.firstWhereOrNull((targetField) => targetField.displayName == param.displayName);
+
+        final memberMapping = mapping.tryGetMapping(param.displayName);
+
+        if (targetField == null && memberMapping == null) {
+          throw InvalidGenerationSourceError(
+              "Can't find mapping for target's constructor parameter: ${param.displayName}. Parameter is required and no mapping or target's class field not found");
+        }
+
         notMappedTargetParameters.add(
           SourceAssignment(
-              sourceField: null,
-              targetField: targetField,
-              memberMapping: mapping.tryGetMapping(targetField.displayName),
-              targetConstructorParam: constructorAssignment),
+            sourceField: null,
+            targetField: targetField,
+            memberMapping: memberMapping,
+            targetConstructorParam: constructorAssignment,
+          ),
         );
       }
     }
 
     _assertNotMappedConstructorParameters(notMappedTargetParameters);
+
     // Prepare and merge mapped and notMapped parameters into Positional and Named arrays
     final mappedPositionalParameters =
         mappedTargetConstructorParams.where((x) => x.targetConstructorParam?.position != null);
@@ -127,6 +132,18 @@ class MapModelBodyMethodBuilder {
     return block.build();
   }
 
+  void _assertParamMemberCanBeIgnored(ParameterElement param, FieldElement sourceField) {
+    if (param.isPositional && param.type.nullabilitySuffix != NullabilitySuffix.question) {
+      throw InvalidGenerationSourceError(
+          "Can't ignore member '${sourceField.displayName}' as it is positional not-nullable parameter");
+    }
+
+    if (param.isRequiredNamed && param.type.nullabilitySuffix != NullabilitySuffix.question) {
+      throw InvalidGenerationSourceError(
+          "Can't ignore member '${sourceField.displayName}' as it is required not-nullable parameter");
+    }
+  }
+
   void _assertNotMappedConstructorParameters(List<SourceAssignment> notMappedParameters) {
     final notMapped = notMappedParameters.map((e) => e.targetConstructorParam!.param);
 
@@ -151,17 +168,12 @@ class MapModelBodyMethodBuilder {
     ClassElement targetClass,
     BlockBuilder block,
   ) {
-    bool filterField(FieldElement field) => true;
+    bool filterField(FieldElement field) =>
+        targetClass.fields.any((element) => element.displayName == field.displayName);
 
     final potentialSetterFields = sourceFields.keys.where((field) => !alreadyMapped.contains(field)).toList();
-
-    final fields = <FieldElement>[];
-
-    for (final key in potentialSetterFields) {
-      if (filterField(sourceFields[key]!)) {
-        fields.add(sourceFields[key]!);
-      }
-    }
+    final fields =
+        potentialSetterFields.where((key) => filterField(sourceFields[key]!)).map((e) => sourceFields[e]!).toList();
 
     for (final sourceField in fields) {
       final targetField = targetClass.fields.firstWhere((field) => field.displayName == sourceField.displayName);
@@ -205,7 +217,7 @@ class MapModelBodyMethodBuilder {
 
   /// Tries to find best constructor for mapping -> currently returns constructor with the most parameter count
   ConstructorElement _findBestConstructor(ClassElement element) {
-    final constructors = element.constructors;
+    final constructors = element.constructors.where((c) => !c.isFactory).toList();
 
     constructors.sort(((a, b) => b.parameters.length - a.parameters.length));
 
@@ -213,7 +225,6 @@ class MapModelBodyMethodBuilder {
   }
 
   Expression _assignValue(SourceAssignment assignment) {
-//    if (mapping.mapperOptionsFnCallback != null) {}
     if (assignment.sourceField == null) return refer('null');
 
     if (mapping.hasMapping(assignment.sourceField!.displayName)) {
@@ -245,9 +256,10 @@ class MapModelBodyMethodBuilder {
     return refer('model').property(assignment.sourceField!.name);
   }
 
+  //todo tests
   Expression _assignListvalue(SourceAssignment assignment) {
     final sourceNullable = assignment.sourceField!.type.nullabilitySuffix == NullabilitySuffix.question;
-    final targetNullable = assignment.targetField.type.nullabilitySuffix == NullabilitySuffix.question;
+    final targetNullable = assignment.targetNullability == NullabilitySuffix.question;
 
     print('S: $sourceNullable, T: $targetNullable');
 

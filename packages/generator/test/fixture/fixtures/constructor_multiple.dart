@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of '../only_positional.dart';
+part of '../constructor_multiple.dart';
 
 // **************************************************************************
 // MapperGenerator
@@ -23,9 +23,9 @@ class $Mapper {
   }
 
   User _mapUserDtoToUser(UserDto model) {
-    final result = User(
-      model.id,
-      model.name,
+    final result = User.moreParams(
+      id: model.id,
+      name: model.name,
     );
     return result;
   }

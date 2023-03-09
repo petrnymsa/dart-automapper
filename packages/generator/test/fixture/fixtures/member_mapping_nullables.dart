@@ -30,7 +30,6 @@ class $Mapper {
       namedIgnoredByNull: null,
     );
     result.age = mapAge(model);
-
     return result;
   }
 }

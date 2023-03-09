@@ -19,4 +19,4 @@ class UserDto {
 @AutoMapper(mappers: [
   AutoMap<UserDto, User>(),
 ])
-class OnlyPositional extends $OnlyPositional {}
+class Mapper extends $Mapper {}

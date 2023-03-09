@@ -80,11 +80,9 @@ class ListTargetNullable {
 }
 
 @AutoMapper(mappers: [
-  AutoMap<UserDto, User>(mappings: [
-    MapMember(member: 'name', target: ExampleMapper.m),
-    MapMember(member: 'age', target: mapAge),
-  ]),
-  // AutoMap<User, UserDto>(),
+  AutoMap<UserDto, User>(reverse: true),
+  AutoMap<User, UserDto>(),
+  //AutoMap<User, UserDto>(),
   // AutoMap<UserDto, NameDto>(),
   // AutoMap<UserDto, SetterNameDto>(),
   // AutoMap<ListDtoNN, ListTargetNN>(),
@@ -92,8 +90,4 @@ class ListTargetNullable {
   // AutoMap<ListDtoNullable, ListTargetNullable>(),
   // AutoMap<ListDtoNullable, ListTargetNN>(),
 ])
-class ExampleMapper extends $ExampleMapper {
-  static dynamic m(UserDto from) => from.id;
-}
-
-dynamic mapAge(UserDto from) => 55;
+class ExampleMapper extends $ExampleMapper {}

@@ -65,19 +65,10 @@ class MapperGenerator extends GeneratorForAnnotation<AutoMapper> {
       );
     }).toList();
 
-    //todo [refactor] Check duplicates
-    // final setParts = parts.map((e) => e.mappingMapMethodName).toSet();
-
-    // if (parts.length != setParts.length) {
-    //   final dupParts = [...parts];
-
-    //   for (var element in setParts) {
-    //     dupParts.remove(element);
-    //   }
-
-    //   throw InvalidGenerationSourceError(
-    //       'Duplicated mappings: ${dupParts.map((e) => e.toString()).join('.')}');
-    // }
+    if (parts.duplicates.isNotEmpty) {
+      throw InvalidGenerationSourceError(
+          '@AutoMapper has configured duplicated mappings:\n\t${parts.duplicates.join('\n\t')}');
+    }
 
     /**
      *  1. Gather all AutoMap 
@@ -93,11 +84,39 @@ class MapperGenerator extends GeneratorForAnnotation<AutoMapper> {
      */
 
     final config = AutoMapperConfig(parts: parts);
+
+    final reverseMappings = parts.where((x) => x.isReverse).toList();
+
+    for (var reverseMapping in reverseMappings) {
+      final specific = config.getMorePreciseReverseMapping(reverseMapping);
+      if (specific != null) {
+        log.warning(
+            'Mapping $reverseMapping has reverse=true but more specific mapping $specific is configured. Reverse flag will be ignored.');
+      }
+    }
+
     final builder = AutoMapperBuilder(mapperClassElement: element, config: config);
 
     final mapping = builder.build();
     final emitter = DartEmitter(orderDirectives: true, useNullSafetySyntax: true);
 
     return '${mapping.accept(emitter)}';
+  }
+}
+
+extension ListEx<T> on List<T> {
+  List<T> get duplicates {
+    final dup = <T>[];
+    final buffer = <T>[];
+
+    for (final x in this) {
+      if (buffer.contains(x)) {
+        dup.add(x);
+      } else {
+        buffer.add(x);
+      }
+    }
+
+    return dup;
   }
 }

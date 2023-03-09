@@ -12,6 +12,9 @@ class $ExampleMapper {
     if (_typeOf<I>() == UserDto && _typeOf<R>() == User) {
       return true;
     }
+    if (_typeOf<I>() == User && _typeOf<R>() == UserDto) {
+      return true;
+    }
     return false;
   }
 
@@ -19,16 +22,28 @@ class $ExampleMapper {
     if (model is UserDto && _typeOf<R>() == User) {
       return (_mapUserDtoToUser(model) as R);
     }
+    if (model is User && _typeOf<R>() == UserDto) {
+      return (_mapUserToUserDto(model) as R);
+    }
     throw Exception('No mapper found for ${model.runtimeType}');
   }
 
   User _mapUserDtoToUser(UserDto model) {
     final result = User(
       id: model.id,
-      name: ExampleMapper.m(model),
+      name: model.name,
       tag: null,
     );
-    result.age = mapAge(model);
+    result.age = model.age;
+    return result;
+  }
+
+  UserDto _mapUserToUserDto(User model) {
+    final result = UserDto(
+      id: model.id,
+      name: model.name,
+      age: model.age,
+    );
     return result;
   }
 }

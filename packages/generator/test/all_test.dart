@@ -14,14 +14,15 @@ void main() async {
 
   for (var file in files) {
     test('Test ${file.uri.pathSegments.last}', () async {
-      final generator = SuccessGenerator.fromBuilder('only_positional', automapperBuilder,
-          inputDir: 'test/fixture', // default
-          fixtureDir: 'test/fixture/fixtures', // default
-          compareWithFixture: true, // use `false` to validate dart code only
-          // fixtureFileName: 'failed', // used when fixture file name does not match input file name
-          onLog: (x) => print(x.message));
+      final generator = SuccessGenerator.fromBuilder(
+        file.uri.pathSegments.last.replaceAll('.dart', ''),
+        automapperBuilder,
+        inputDir: 'test/fixture',
+        fixtureDir: 'test/fixture/fixtures',
+        compareWithFixture: true,
+        onLog: (x) => print(x.message),
+      );
 
-// run the test
       await generator.test();
     });
   }
